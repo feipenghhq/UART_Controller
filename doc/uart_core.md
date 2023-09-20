@@ -9,6 +9,9 @@
   - [uart\_rx.sv](#uart_rxsv)
     - [IO Ports](#io-ports-1)
     - [Implementation](#implementation-1)
+  - [uart\_tx.sv](#uart_txsv)
+    - [IO Ports](#io-ports-2)
+    - [Implementation](#implementation-2)
   - [Reference](#reference)
 
 
@@ -40,17 +43,16 @@ The uart core contains 4 RTL files:
 
 ### IO Ports
 
-| Name        | Direction | Width | Description                                       |
-| ----------- | --------- | ----- | ------------------------------------------------- |
-| clk         | input     | 1     | Clock.                                            |
-| rst_b       | input     | 1     | Reset.                                            |
-| cfg_div     | input     | 16    | Clock divider counter. cfg_div = F_clk/F_baud - 1 |
-| clear       | input     | 1     | Clear the baud counter and start a new  sampling. |
-| baud_tick   | output    | 1     | 16x oversampling tick.                            |
-| baud_tick6  | output    | 1     | 16x oversampling tick. 6th tick                   |
-| baud_tick8  | output    | 1     | 16x oversampling tick. 8th tick.                  |
-| baud_tick10 | output    | 1     | 16x oversampling tick. 10th tick.                 |
-| baud_tick16 | output    | 1     | 16x oversampling tick. 16th tick.                 |
+| Name           | Direction | Width | Description                                       |
+| -------------- | --------- | ----- | ------------------------------------------------- |
+| clk            | input     | 1     | Clock.                                            |
+| rst_b          | input     | 1     | Reset.                                            |
+| cfg_div        | input     | 16    | Clock divider counter. cfg_div = F_clk/F_baud - 1 |
+| baud_clear     | input     | 1     | Clear the baud counter and start a new  sampling. |
+| baud_tick_6th  | output    | 1     | 16x oversampling tick. 6th tick                   |
+| baud_tick_8th  | output    | 1     | 16x oversampling tick. 8th tick.                  |
+| baud_tick_10th | output    | 1     | 16x oversampling tick. 10th tick.                 |
+| baud_tick_16th | output    | 1     | 16x oversampling tick. 16th tick.                 |
 
 ### Implementation
 
@@ -81,7 +83,7 @@ Formula to calculate `cfg_div`: `cfg_div = clock_frequency / baud_rate-1 `. (mat
 
 To filtering out the potential noise on the uart_rxd signal, we use 16x Rx oversampling with 2/3 majority voting per bit. Each bit window is divided into 16. We sample the uart_rxd data around the middle of a transaction 3 times at the 6th, 8th, 10th tick of the 16 sampling tick.  The majority value of the 3 values is the final value of uart_rxd in this bit.
 
-### RX state machine
+#### RX state machine
 
 #### State diagram
 
@@ -98,13 +100,13 @@ To filtering out the potential noise on the uart_rxd signal, we use 16x Rx overs
 
 #### State transition
 
-| Current State | Next State | Condition                      | Description                                                  |
-| ------------- | ---------- | ------------------------------ | ------------------------------------------------------------ |
-| IDLE          | START      | !uart_rxd_sync                 | When uart_rxd goes low, we transit to START to sample start condition. |
+| Current State | Next State | Condition                      | Description                                                                           |
+| ------------- | ---------- | ------------------------------ | ------------------------------------------------------------------------------------- |
+| IDLE          | START      | !uart_rxd_sync                 | When uart_rxd goes low, we transit to START to sample start condition.                |
 | START         | IDLE       | uart_rxd_vote                  | When the vote result is high, go back to IDLE state as this is not a start condition. |
-| START         | DATA       | !uart _rxd_vote && baud_tick16 | When the vote result is low (true start condition) and we reach the end of the bit. |
-| DATA          | STOP       | last_data && baud_tick16       | When we are receiving the last data bit and we reach the end of the bit. |
-| STOP          | IDLE       | last_stop && baud_tick16       | When we are receiving the last stop bit and we reach the end of the bit. |
+| START         | DATA       | !uart _rxd_vote && baud_tick16 | When the vote result is low (true start condition) and we reach the end of the bit.   |
+| DATA          | STOP       | last_data && baud_tick16       | When we are receiving the last data bit and we reach the end of the bit.              |
+| STOP          | IDLE       | last_stop && baud_tick16       | When we are receiving the last stop bit and we reach the end of the bit.              |
 
 ## uart_tx.sv
 
@@ -124,7 +126,7 @@ To filtering out the potential noise on the uart_rxd signal, we use 16x Rx overs
 
 ### Implementation
 
-### TX state machine
+#### TX state machine
 
 #### State diagram
 
