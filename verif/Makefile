@@ -54,6 +54,7 @@ endef
 
 
 $(eval $(call add_test,uart_rx))
+$(eval $(call add_test,uart_tx))
 
 rtl_lint:
 	@verilator -lint-only -Wall $(SV_FILE)

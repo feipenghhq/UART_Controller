@@ -9,10 +9,11 @@
 */
 
 `timescale 1ns/10ps
-`define UART_DRIVER
-`define UART_RX_CHECKER
+`define UART_RECEIVER
+`define UART_TX_DRIVER
+`define UART_TX_CHECKER
 
-module uart_rx_tb();
+module uart_tx_tb();
 
     // --------------------------------------------
     //  Signal Declaration
@@ -25,17 +26,18 @@ module uart_rx_tb();
     logic        clk;
     logic        rst_b;
     logic [15:0] cfg_div;
-    logic        cfg_rxen;
+    logic        cfg_txen;
     logic        cfg_nstop;
-    logic        rx_valid;
-    logic [7:0]  rx_data;
-    logic        uart_rxd;
+    logic        tx_valid;
+    logic [7:0]  tx_data;
+    logic        tx_ready;
+    logic        uart_txd;
 
     // --------------------------------------------
     //  Instantiate DUT
     // --------------------------------------------
 
-    uart_rx u_uart_rx (.*);
+    uart_tx u_uart_tx (.*);
 
     // --------------------------------------------
     //  clock and reset
@@ -59,28 +61,31 @@ module uart_rx_tb();
     // --------------------------------------------
 
     logic [7:0] send_data;
+    logic [7:0] received_data;
     integer period = 1 * 1000000000 / BAUD_RATE;
     localparam TEST_NUM = 16;
 
     // initial value
     initial begin
+        tx_valid = 1'b0;
+        tx_data = 8'b0;
         cfg_nstop = 1'b0;
-        cfg_rxen = 1'b1;
+        cfg_txen = 1'b1;
         cfg_div = CLK_FREQ / BAUD_RATE + 1;
-        uart_rxd = 1'b1;
     end
 
     initial begin
         @(posedge rst_b);
         $display("--------------------------------");
-        $display("Running Test: uart_rx_tb");
+        $display("Running Test: uart_tx_tb");
         $display("--------------------------------");
         repeat(TEST_NUM) begin
             send_data = $random;
             fork
-            uart_driver(cfg_nstop, period, send_data);
-            uart_rx_checker(send_data);
+            uart_tx_driver(send_data);
+            uart_receiver(cfg_nstop, period, received_data);
             join
+            uart_tx_checker(send_data, received_data);
         end
         #20;
         if (!rx_error) display_pass();
@@ -95,7 +100,7 @@ module uart_rx_tb();
     initial begin
         if ($test$plusargs("DUMP")) begin
             $dumpfile("dump.vcd");
-            $dumpvars(0,uart_rx_tb);
+            $dumpvars(0,uart_tx_tb);
         end
     end
 
