@@ -36,12 +36,12 @@ The UART controller supports the following features (same as SiFive-E300-platfor
 
 The UART core is the main block to performance the UART transaction protocol. It contains 4 RTL files:
 
-| File         | Description                                     |
-| ------------ | ----------------------------------------------- |
-| uart_baud.sv | Generate sample tick for a given baud rate.     |
-| uart_tx.sv   | uart transmit module.                           |
-| uart_rx.sv   | uart receive module.                            |
-| uart_core.sv | Top level. Instantiate all the 3 above modules. |
+| File                      | Description                                     |
+| ------------------------- | ----------------------------------------------- |
+| src/rtl/uart/uart_baud.sv | Generate sample tick for a given baud rate.     |
+| src/rtl/uart/uart_tx.sv   | uart transmit module.                           |
+| src/rtl/uart/uart_rx.sv   | uart receive module.                            |
+| src/rtl/uart/uart_core.sv | Top level. Instantiate all the 3 above modules. |
 
 Check [uart_core.md](doc/uart_core.md) for implementation details.
 
@@ -49,10 +49,11 @@ Check [uart_core.md](doc/uart_core.md) for implementation details.
 
 APB Uart design provide a APB Memory Mapped Interface to interact with the Uart core. The memory map is based on SiFive-E300-platform. It contains 2 RTL files:
 
-| File            | Description                                          |
-| --------------- | ---------------------------------------------------- |
-| apb_uart.sv     | Top level. Instantiate register module and uart_core |
-| apb_uart_reg.sv | Uart register module.                                |
+| File                              | Description                                          |
+| --------------------------------- | ---------------------------------------------------- |
+| src/rtl/apb_uart/apb_uart.sv      | Top level. Instantiate register module and uart_core |
+| src/rtl/apb_uart/apb_uart_fifo.sv | FIFO. A Flop based FIFO                              |
+| src/rtl/apb_uart/apb_uart_ctrl.sv | Uart register and control module.                    |
 
 Check [apb_uart.md](doc/apb_uart.md) for memory map and implementation details.
 
