@@ -7,9 +7,15 @@ REPO := $(shell git rev-parse --show-toplevel)
 RTL_PATH := $(REPO)/src/rtl/
 TB_PATH := $(REPO)/verif/tb/
 # src files
-UART_FILES := $(wildcard $(RTL_PATH)/uart/*.sv)
-SV_FILE += $(UART_FILES)
-TB_PATH := $(REPO)/verif/tb
+UART_FILES     := $(wildcard $(RTL_PATH)/uart/*.sv)
+APB_UART_FILES := $(wildcard $(RTL_PATH)/apb_uart/*.sv)
+
+SV_FILE  += $(UART_FILES)
+SV_FILE  += $(APB_UART_FILES)
+
+INC_FILE += $(RTL_PATH)/apb_uart
+
+TB_PATH  += $(REPO)/verif/tb
 
 SIM ?= iverilog
 
@@ -40,7 +46,7 @@ endif
 define add_test
 $(1): $(OUTPUT)
 ifeq ($(SIM), iverilog)
-	@iverilog $(IVERILOG_OPTIONS) $(SV_FILE) $(TB_PATH)/$(1)_tb.sv -I $(TB_PATH) -o $(OUTPUT)/$(1)
+	@iverilog $(IVERILOG_OPTIONS) -I $(INC_FILE) $(SV_FILE) $(TB_PATH)/$(1)_tb.sv -I $(TB_PATH) -o $(OUTPUT)/$(1)
 	@cd $(OUTPUT); vvp $(1) $(VVP_OPTIONS)
 else ifeq ($(SIM), vivado)
 	@cd $(OUTPUT); xvlog $(XVLOG_OPTIONS) -i $(TB_PATH) $(SV_FILE) $(TB_PATH)/$(1)_tb.sv
@@ -56,6 +62,7 @@ endef
 $(eval $(call add_test,uart_rx))
 $(eval $(call add_test,uart_tx))
 $(eval $(call add_test,uart_core))
+$(eval $(call add_test,apb_uart))
 
 rtl_lint:
 	@verilator -lint-only -Wall $(SV_FILE)
